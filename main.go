@@ -10,6 +10,8 @@ import (
 	"github.com/miekg/dns"
 )
 
+var dnsPort = 5354
+var dnsLookupServer = "8.8.8.8"
 var domainsToAddresses = map[string]string{
 	//Real Addresses
 	"jameshfisher.com.": "104.198.14.53",
@@ -25,10 +27,10 @@ var domainsToAddresses = map[string]string{
 
 type handler struct{}
 
-func dnsLookup(domain string, server string, m dns.Msg, dnsClient dns.Client) string {
+func dnsLookup(domain string, dnsLookupServer string, m dns.Msg, dnsClient dns.Client) string {
 	address := ""
 	m.SetQuestion(domain, dns.TypeA)
-	reply, _, err := dnsClient.Exchange(&m, server+":53")
+	reply, _, err := dnsClient.Exchange(&m, dnsLookupServer+":53")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -42,13 +44,12 @@ func dnsLookup(domain string, server string, m dns.Msg, dnsClient dns.Client) st
 }
 
 func (this *handler) ServeDNS(w dns.ResponseWriter, r *dns.Msg) {
-
-	// dn
+	// dns object for redirect
 	msg := dns.Msg{}
 	msg.SetReply(r)
 
+	// dns objects for external lookup
 	dnsClient := dns.Client{}
-	server := "192.168.100.3"
 	m := dns.Msg{}
 
 	switch r.Question[0].Qtype {
@@ -59,7 +60,7 @@ func (this *handler) ServeDNS(w dns.ResponseWriter, r *dns.Msg) {
 		if ok {
 			log.Printf("DNSReroute rerouted %s to %s", domain, address)
 		} else {
-			address = dnsLookup(domain, server, m, dnsClient)
+			address = dnsLookup(domain, dnsLookupServer, m, dnsClient)
 			log.Printf("DNSLookup found %s at %s", domain, address)
 		}
 		msg.Answer = append(msg.Answer, &dns.A{
@@ -71,7 +72,7 @@ func (this *handler) ServeDNS(w dns.ResponseWriter, r *dns.Msg) {
 }
 
 func main() {
-	srv := &dns.Server{Addr: ":" + strconv.Itoa(5354), Net: "udp"}
+	srv := &dns.Server{Addr: ":" + strconv.Itoa(dnsPort), Net: "udp"}
 	srv.Handler = &handler{}
 	if err := srv.ListenAndServe(); err != nil {
 		log.Fatalf("Failed to set udp listener %s\n", err.Error())
