@@ -4,7 +4,7 @@ goDNSreroute is a tool for developers to capture and re-route DNS queries for ne
 
 #### Background
 The concept of a redirecting DNS server for the purpose of testing is derived from the [dns-reroute](https://github.com/nanoscopic/dns-reroute) project by [nanoscopic](https://github.com/nanoscopic).
-The DNS server portion of this project borrows heavily from from code located [here](https://jameshfisher.com/2017/08/04/golang-dns-server.html).
+The DNS server portion of this project borrows heavily from code located [here](https://jameshfisher.com/2017/08/04/golang-dns-server.html).
 
 
 #### Introduction
